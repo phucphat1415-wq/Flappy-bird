@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flappy Aero - Skills & Levels Edition</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-wrapper">
+        <canvas id="gameCanvas" width="440" height="640"></canvas>
+
+        <!-- Level Start Banner -->
+        <div id="levelIntroBanner" class="level-banner hidden">Stage 1: Emerald Grove</div>
+
+        <!-- In-Game HUD -->
+        <div id="hud" class="hidden">
+            <div class="hud-top">
+                <div class="hud-pill">
+                    <span class="label">Score</span>
+                    <span id="hudScore" class="value">0</span>
+                </div>
+
+                <div class="hud-pill">
+                    <span class="label">Best</span>
+                    <span id="hudHighScore" class="value">0</span>
+                </div>
+
+                <div class="hud-meter-group">
+                    <!-- Energy Meter -->
+                    <div class="meter-wrapper">
+                        <div class="meter-header">
+                            <span>ENERGY</span>
+                            <span id="energyText">100%</span>
+                        </div>
+                        <div class="meter-bar">
+                            <div id="energyBarFill" class="meter-fill energy-fill"></div>
+                        </div>
+                    </div>
+
+                    <!-- Level Distance Progress Meter -->
+                    <div class="meter-wrapper">
+                        <div class="meter-header">
+                            <span>PROGRESS</span>
+                            <span id="distanceText">0m / 900m</span>
+                        </div>
+                        <div class="meter-bar">
+                            <div id="distanceBarFill" class="meter-fill distance-fill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hud-controls">
+                    <button id="btnSoundToggle" class="icon-btn" title="Toggle Sound">🔊</button>
+                    <button id="btnPauseToggle" class="icon-btn" title="Pause Game">⏸</button>
+                </div>
+            </div>
+
+            <!-- Skill Hotbar (Clickable / Touchable) -->
+            <div class="hud-bottom">
+                <!-- Skill 1: Dash -->
+                <button id="btnSkillDash" class="skill-btn ready">
+                    <span class="key-hint">Shift/J</span>
+                    <span class="icon">⚡</span>
+                    <span class="name">Dash</span>
+                    <span class="cost">30 NRG</span>
+                </button>
+
+                <!-- Skill 2: Shield -->
+                <button id="btnSkillShield" class="skill-btn ready">
+                    <span class="key-hint">E / K</span>
+                    <span class="icon">🛡️</span>
+                    <span class="name">Shield</span>
+                    <span class="cost">40 NRG</span>
+                </button>
+
+                <!-- Skill 3: Sonic Dart -->
+                <button id="btnSkillDart" class="skill-btn ready">
+                    <span class="key-hint">F / I</span>
+                    <span class="icon">🎯</span>
+                    <span class="name">Dart</span>
+                    <span class="cost">25 NRG</span>
+                </button>
+
+                <!-- Skill 4: Chrono Shift -->
+                <button id="btnSkillChrono" class="skill-btn ready">
+                    <span class="key-hint">Q / L</span>
+                    <span class="icon">⏳</span>
+                    <span class="name">Chrono</span>
+                    <span class="cost">35 NRG</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Menu Overlay -->
+        <div id="menuOverlay" class="overlay">
+            <div class="card">
+                <h1 class="game-title">FLAPPY AERO</h1>
+                <p class="subtitle">Thin, Short & Empowered</p>
+
+                <div class="bird-preview-box">
+                    <canvas id="birdPreviewCanvas" width="60" height="30"></canvas>
+                    <div class="bird-spec">
+                        <div><strong>Aerodynamic Form:</strong> Thin & Short profile</div>
+                        <div><strong>Agility:</strong> Squeezes through tight moving hazards</div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="btnStartCampaign" class="btn btn-primary">🚀 Play Campaign</button>
+                    <button id="btnStartEndless" class="btn btn-secondary">♾️ Endless Mode</button>
+                    <button id="btnOpenLevelSelect" class="btn btn-secondary">🗺️ Select Level</button>
+                </div>
+
+                <div style="margin-top: 18px; font-size: 11px; color: #94a3b8; line-height: 1.5;">
+                    <div><strong>Controls:</strong> Space / Click to Flap</div>
+                    <div><strong>Skills:</strong> Hotkeys 1-4, Shift, E, F, Q or On-screen buttons</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level Select Modal -->
+        <div id="levelSelectModal" class="overlay hidden">
+            <div class="card">
+                <h2 style="font-size: 20px; font-weight: 900; margin-bottom: 4px;">CAMPAIGN LEVELS</h2>
+                <p class="subtitle">Conquer stages to unlock new bird skills</p>
+                <div id="levelGrid" class="level-grid"></div>
+                <button id="btnCloseLevelSelect" class="btn btn-secondary" style="width: 100%;">Back to Menu</button>
+            </div>
+        </div>
+
+        <!-- Pause Overlay -->
+        <div id="pauseOverlay" class="overlay hidden">
+            <div class="card">
+                <h2 style="font-size: 24px; font-weight: 900; margin-bottom: 8px;">GAME PAUSED</h2>
+                <div class="btn-group">
+                    <button id="btnResumeGame" class="btn btn-primary">▶ Resume Flight</button>
+                    <button id="btnReturnMenu" class="btn btn-secondary">🏠 Exit to Menu</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level Cleared Victory Overlay -->
+        <div id="levelClearedOverlay" class="overlay hidden">
+            <div class="card">
+                <div style="font-size: 38px; margin-bottom: 4px;">🏆</div>
+                <h2 id="clearedTitle" style="font-size: 22px; font-weight: 900; color: #38bdf8;">STAGE CLEAR!</h2>
+                <div id="clearedStars" style="font-size: 26px; margin: 8px 0;">⭐⭐⭐</div>
+                
+                <div id="clearedSkillUnlock" class="bird-preview-box hidden" style="flex-direction: column; text-align: center;">
+                    <!-- Dynamically populated if new skill unlocked -->
+                </div>
+
+                <div class="score-display-box">
+                    <span id="clearedScore" style="font-size: 16px; font-weight: 800;">Score: 0</span>
+                </div>
+
+                <div class="btn-group">
+                    <button id="btnNextLevel" class="btn btn-primary">Next Stage ➔</button>
+                    <button id="btnRestartGame" class="btn btn-secondary">Replay Stage</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div id="gameOverOverlay" class="overlay hidden">
+            <div class="card">
+                <div style="font-size: 34px; margin-bottom: 4px;">💥</div>
+                <h2 style="font-size: 24px; font-weight: 900; color: #ef4444;">FLIGHT CRASHED</h2>
+                <p class="subtitle">Tip: Use Shield or Dash to survive tight spots!</p>
+
+                <div class="score-display-box">
+                    <div>
+                        <div style="font-size: 10px; color: #94a3b8; font-weight: 700;">SCORE</div>
+                        <div id="gameOverScore" style="font-size: 20px; font-weight: 900; color: #fff;">0</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 10px; color: #94a3b8; font-weight: 700;">BEST</div>
+                        <div id="gameOverBest" style="font-size: 20px; font-weight: 900; color: #facc15;">0</div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="btnRestartGame" class="btn btn-primary">⚡ Try Again</button>
+                    <button id="btnOpenLevelSelect" class="btn btn-secondary">Select Level</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="src/audio.js"></script>
+    <script src="src/particles.js"></script>
+    <script src="src/bird.js"></script>
+    <script src="src/obstacles.js"></script>
+    <script src="src/levels.js"></script>
+    <script src="src/game.js"></script>
+
+    <!-- Tiny Preview Renderer for Menu -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const previewCanvas = document.getElementById('birdPreviewCanvas');
+            if (previewCanvas) {
+                const pCtx = previewCanvas.getContext('2d');
+                const bird = new Bird();
+                bird.x = 30;
+                bird.y = 15;
+                function drawPreview() {
+                    pCtx.clearRect(0, 0, 60, 30);
+                    bird.wingTimer += 0.1;
+                    bird.draw(pCtx);
+                    requestAnimationFrame(drawPreview);
+                }
+                drawPreview();
+            }
+        });
+    </script>
+</body>
+</html>
